@@ -48,3 +48,18 @@ def test_due_reminder_is_delivered_only_once():
 def test_ocr_is_off_by_default():
     r = client.post("/api/ocr", files={"photo": ("a.png", b"x", "image/png")})
     assert r.status_code == 404
+
+
+def test_pdf_without_poppler_says_program_missing(monkeypatch):
+    import subprocess
+
+    import pytest
+
+    from app import ocr
+
+    def missing(*args, **kwargs):
+        raise FileNotFoundError("pdftotext")
+
+    monkeypatch.setattr(subprocess, "run", missing)
+    with pytest.raises(ocr.OcrError, match="프로그램이 서버에 없습니다"):
+        ocr.read_pdf(b"%PDF-1.4 test")

@@ -180,7 +180,9 @@ async def read_photo(photo: UploadFile, user: User = Depends(current_user)):
     if not settings.ocr_enabled:
         raise HTTPException(404, "사진 글자 읽기가 꺼져 있습니다")
     try:
-        return {"text": ocr.read_text(await photo.read())}
+        data = await photo.read()
+        # 파일 이름이나 형식 표시는 바꿔 보낼 수 있어서, PDF 인지는 파일 첫 바이트로 판단한다
+        return {"text": ocr.read_pdf(data) if data.startswith(b"%PDF-") else ocr.read_text(data)}
     except ocr.OcrError as error:
         raise HTTPException(500, str(error)) from error
 
