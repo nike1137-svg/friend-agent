@@ -145,6 +145,36 @@ gcloud run deploy friend-agent --source . --region us-central1 --allow-unauthent
 
 에이전트 서비스는 `LLM_API_KEY` 가 없으면 시작하지 않으므로, 키를 넣기 전 첫 배포는 실패합니다. 키를 넣는 방법과 Secret Manager 연결은 교안을 따라 진행합니다.
 
+## CI 테스트와 staging 배포
+
+| 무엇을 하면 | 도는 것 | 결과 |
+| --- | --- | --- |
+| PR 을 올리거나 고침 | `ci.yml` — `pytest -q` (가짜 응답, AI 비용 없음) | PR 화면에 초록불 / 빨간불 |
+| `staging` 에 머지 | `deploy.yml` — 테스트 → `friend-agent-staging` 배포 | staging 주소에 새 리비전 |
+| `main` 에 머지 | `deploy.yml` — 테스트 → 승인 대기 → `friend-agent` 배포 | Actions 화면에서 승인해야 운영에 나감 |
+
+테스트가 실패하면 배포 단계는 시작하지 않습니다.
+
+평소 순서:
+
+```text
+git switch staging && git pull && git switch -c <작업 브랜치>
+# 고치고 커밋한 뒤
+git push -u origin <작업 브랜치>
+gh pr create --base staging          # CI 통과 → 머지 → staging 에 배포 → staging 주소에서 확인
+gh pr create --base main --head staging   # CI 통과 → 머지 → Actions 화면에서 production 배포 승인
+```
+
+staging → main PR 을 머지할 때는 `staging` 브랜치를 지우지 않습니다.
+
+배포된 버전은 각 주소의 `/version` 으로 확인합니다(`commit` 이 배포한 커밋과 같아야 함).
+
+설정 위치:
+- 저장소 Variables: `GCP_PROJECT_ID`, `WIF_PROVIDER`, `DEPLOY_SA`, `RUNTIME_SA`, `BUILD_SA`
+- Environments `staging`: `SERVICE=friend-agent-staging`, `ENV=staging`
+- Environments `production`: `SERVICE=friend-agent`, `ENV=production`, Required reviewers 지정
+- staging 서비스는 `LLM_PROVIDER=fake` 로 띄웁니다. 실제 AI 를 부르지 않으므로 공개 주소여도 AI 비용이 나가지 않습니다. 화면·흐름·배포 확인용이고, 실제 대화 품질은 production 에서 봅니다.
+
 ## 단계별로 켜는 기능
 
 처음 배포할 때는 서버 메모리에 저장하고 로그인이 없습니다. 아래 기능은 해당 주제를 배우는 날 켭니다.
