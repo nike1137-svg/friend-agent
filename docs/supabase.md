@@ -30,7 +30,7 @@ secret key 를 Secret Manager에 넣었다면 실행용 서비스 계정(`friend
 - 새 리비전을 배포한 뒤 다시 열어도 대화가 남아 있다.
 - staging 에서 보낸 메시지가 production 프로젝트의 테이블에는 없다.
 
-## 4. 구글 계정 연결 (공개 전)
+## 4. 구글 계정 연결 (공개 준비 때)
 
 1. Google Cloud 콘솔에서 OAuth 클라이언트를 만들고, 승인된 리디렉션 URI에 Supabase가 안내하는 콜백 주소를 넣는다.
 2. Supabase **Authentication > Sign In / Providers > Google** 에 클라이언트 ID와 비밀값을 넣고 켠다.

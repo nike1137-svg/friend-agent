@@ -2,8 +2,8 @@
 .env
 .venv/
 .git/
-__pycache__/
-*.pyc
+**/__pycache__/
+**/*.pyc
 .pytest_cache/
 .claude/
 docs/
